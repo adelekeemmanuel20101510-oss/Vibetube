@@ -1,328 +1,703 @@
-Save as `index.html`:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VibeTube</title>
+<meta name="theme-color" content="#09090d">
+<title>VibeTube — Watch Your Vibe</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2309090d'/%3E%3Cpath d='M18 28 L39 72 L53 49 L67 72 L86 28' fill='none' stroke='%23ff3b70' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M41 37 L41 57 L59 47 Z' fill='white'/%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+:root{--bg:#09090d;--surface:#13131b;--surface2:#1c1c27;--line:#2b2b38;--text:#f7f7fb;--muted:#a5a5b7;--pink:#ff3b70;--orange:#ff8a28;--purple:#a855f7}
 *{box-sizing:border-box}
-body{margin:0;background:#0f0f0f;color:#f5f5f5;font-family:Arial,sans-serif}
-header{display:flex;align-items:center;gap:12px;padding:14px;background:#181818;position:sticky;top:0;z-index:5}
-.logo{font-size:22px;font-weight:bold;color:#ff4545;white-space:nowrap}
-input,textarea,button{padding:11px;border:1px solid #444;border-radius:8px;background:#222;color:white;font:inherit}
-button{cursor:pointer}
-button:hover{background:#383838}
-#search{flex:1;min-width:0}
-.layout{display:flex}
-aside{width:190px;flex-shrink:0;background:#181818;min-height:100vh;padding:12px}
-aside button{display:block;width:100%;text-align:left;margin-bottom:8px}
-main{padding:20px;flex:1;min-width:0}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at top,#171020 0,var(--bg) 45%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;color:var(--text);background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;transition:transform .16s,background .16s,border-color .16s}
+button:hover{background:#29293a;border-color:#55556b}
+button:active{transform:scale(.98)}
+input,textarea,select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#101018;color:var(--text);outline:none}
+input:focus,textarea:focus{border-color:var(--pink)}
+a{color:#ff91b1}
 .hidden{display:none!important}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
-.card{cursor:pointer;min-width:0}
-.card img,.card video{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;background:#292929}
-.card h3{font-size:15px;margin:8px 0}
-.muted{color:#aaa;font-size:13px}
-.panel{background:#1b1b1b;border-radius:12px;padding:16px;margin:12px 0}
-.field{display:block;width:100%;margin:10px 0}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-#player{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000}
-.comment{border-bottom:1px solid #333;padding:10px 0}
-a{color:#8ab4f8}
-@media(max-width:650px){
- aside{width:58px;padding:5px}
- aside button{font-size:0;text-align:center;padding:12px 2px}
- aside button::first-letter{font-size:18px}
- main{padding:10px}
- header{flex-wrap:wrap}
-}
+.muted{color:var(--muted);font-size:13px}
+.field{display:block;margin:10px 0}
+.primary{background:linear-gradient(110deg,var(--orange),var(--pink),var(--purple));border:0;font-weight:750}
+.primary:hover{filter:brightness(1.1)}
+.brand{display:flex;align-items:center;gap:9px;font-size:22px;font-weight:900;letter-spacing:-.8px;white-space:nowrap}
+.brand-mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--orange),var(--pink),var(--purple));display:grid;place-items:center;box-shadow:0 0 24px #ff3b7033}
+.brand-mark svg{width:22px;height:22px}
+.brand span:last-child{background:linear-gradient(90deg,#fff 25%,#ff759c 70%,#ff9e46);-webkit-background-clip:text;background-clip:text;color:transparent}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:12px clamp(12px,3vw,34px);background:#0b0b10ef;backdrop-filter:blur(18px);border-bottom:1px solid #ffffff12}
+.searchbar{display:flex;gap:8px;max-width:720px;flex:1;margin:auto}
+.searchbar input{border-radius:999px;padding-left:18px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.layout{display:flex;max-width:1700px;margin:auto}
+aside{width:220px;flex-shrink:0;padding:20px 12px;position:sticky;top:68px;height:calc(100vh - 68px);overflow:auto;border-right:1px solid #ffffff0c}
+aside button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:4px 0;background:transparent;border-color:transparent;padding:13px 14px}
+aside button.active,aside button:hover{background:linear-gradient(90deg,#ff3b701e,#a855f70d);border-color:#ff3b7030}
+aside .nav-label{padding:18px 12px 6px;color:#77778b;font-size:11px;text-transform:uppercase;letter-spacing:1.5px}
+main{padding:clamp(16px,3vw,32px);min-width:0;flex:1;max-width:1480px;margin:0 auto;width:100%}
+section>h2{font-size:clamp(24px,3vw,34px);margin:5px 0 8px;letter-spacing:-1px}
+.hero{position:relative;overflow:hidden;padding:clamp(24px,5vw,54px);border:1px solid #ffffff15;border-radius:28px;background:radial-gradient(circle at 85% 15%,#a855f74a,transparent 32%),radial-gradient(circle at 70% 100%,#ff3b7033,transparent 35%),linear-gradient(120deg,#20131f,#11111b 70%);margin-bottom:30px}
+.hero h1{font-size:clamp(34px,6vw,64px);letter-spacing:-2px;line-height:1.02;margin:0 0 14px;max-width:680px}
+.gradient-text{background:linear-gradient(90deg,#ffb15c,#ff4c88,#bd78ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:#c4c0d1;max-width:560px;line-height:1.6}
+.hero .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:24px 0 14px}
+.section-head h3{font-size:20px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,235px),1fr));gap:20px}
+.card{min-width:0;cursor:pointer;transition:transform .18s}
+.card:hover{transform:translateY(-3px)}
+.thumb-wrap{position:relative}
+.card img,.card video{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:15px;background:#20202b;display:block}
+.card h3{font-size:15px;line-height:1.4;margin:10px 0 5px}
+.card .muted{margin:0;line-height:1.45}
+.tag{display:inline-flex;padding:4px 8px;border:1px solid #ffffff18;background:#ffffff0b;border-radius:999px;font-size:11px;color:#ddd;margin-top:7px}
+.panel{background:linear-gradient(145deg,#171720,#111118);border:1px solid #ffffff12;border-radius:18px;padding:18px;margin:14px 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.comment{border-bottom:1px solid #ffffff12;padding:12px 0}
+.comment:last-child{border:0}
+#player{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:18px;background:#000;margin:16px 0}
+#playerBox{max-width:1050px}
+.watch-layout{max-width:1100px}
+.watch-layout .panel{max-width:1050px}
+.empty{padding:30px;border:1px dashed #444454;border-radius:16px;text-align:center;color:var(--muted)}
+.shorts-wrap{max-width:520px;margin:18px auto;display:grid;gap:18px}
+.short-card{position:relative;background:#000;border:1px solid #ffffff1c;border-radius:24px;overflow:hidden;min-height:55vh;display:flex;align-items:center;justify-content:center}
+.short-card iframe{width:100%;height:min(78vh,760px);border:0}
+.short-info{position:absolute;bottom:0;left:0;right:0;padding:55px 18px 18px;background:linear-gradient(transparent,#000d);pointer-events:none}
+.short-info h3{margin:0 0 6px}
+.short-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.short-actions button{pointer-events:auto;background:#15151bdc}
+.auth-wrap{max-width:480px;margin:30px auto}
+.auth-logo{text-align:center;margin:10px 0 22px}
+.status{min-height:20px}
+.footer{padding:28px;text-align:center;color:#77778b;font-size:12px}
+#intro{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:radial-gradient(circle at 50% 42%,#261025,#09090d 65%);transition:opacity .7s,visibility .7s}
+#intro.done{opacity:0;visibility:hidden;pointer-events:none}
+.intro-content{text-align:center;animation:introRise .8s ease-out both}
+.intro-logo{width:124px;height:124px;border-radius:34px;background:linear-gradient(135deg,#ffad36,#ff3b70 58%,#a855f7);display:grid;place-items:center;margin:0 auto 24px;box-shadow:0 0 70px #ff3b7055;animation:logoPulse 1.7s ease-in-out infinite}
+.intro-logo svg{width:76px;height:76px;filter:drop-shadow(0 4px 14px #0005)}
+.intro-content h1{font-size:clamp(42px,8vw,70px);letter-spacing:-3px;margin:0}
+.intro-content p{color:#aaa8ba;letter-spacing:4px;font-size:11px;margin:12px 0 28px}
+.intro-line{height:4px;width:min(250px,60vw);border-radius:99px;background:#ffffff16;margin:auto;overflow:hidden}
+.intro-line:after{content:"";display:block;height:100%;width:45%;border-radius:99px;background:linear-gradient(90deg,var(--orange),var(--pink),var(--purple));animation:loading 1.4s ease-in-out infinite}
+@keyframes introRise{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes logoPulse{50%{transform:translateY(-5px) scale(1.035);box-shadow:0 0 90px #ff3b7070}}
+@keyframes loading{from{transform:translateX(-110%)}to{transform:translateX(250%)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(max-width:800px){header{gap:9px;flex-wrap:wrap}.brand{font-size:19px}.searchbar{order:3;flex-basis:100%;max-width:none}.header-actions{margin-left:auto}aside{width:68px;padding:12px 5px}aside button{justify-content:center;padding:13px 2px;font-size:0;gap:0}aside button .nav-text{display:none}aside button .nav-icon{font-size:20px}aside .nav-label{display:none}main{padding:15px}.grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,165px),1fr));gap:13px}.hero{border-radius:20px}.short-card{min-height:60vh}}
+@media(max-width:430px){.header-actions button{padding:9px}.brand{font-size:17px}.brand-mark{width:31px;height:31px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card h3{font-size:13px}}
 </style>
 </head>
 <body>
-
+<div id="intro" aria-label="Entering VibeTube">
+  <div class="intro-content">
+    <div class="intro-logo"><svg viewBox="0 0 100 100" fill="none" aria-hidden="true"><path d="M15 23L37 73L51 49L66 73L86 23" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 35L40 57L60 46Z" fill="#fff"/><path d="M34 15L39 6L45 15L51 6L57 15L63 6L68 15" stroke="#ffd45b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h1>Vibe<span class="gradient-text">Tube</span></h1>
+    <p>WATCH · DISCOVER · ENJOY</p>
+    <div class="intro-line"></div>
+  </div>
+</div>
 <header>
-  <div class="logo">▶ VibeTube</div>
-  <input id="search" placeholder="Search YouTube videos...">
-  <button onclick="searchYouTube()">Search</button>
-  <button onclick="showAuth()" id="authButton">Sign in</button>
+  <div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5L9 19L12 12L15 19L20 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 8L10 15L16 11.5Z" fill="white"/></svg></div><span>VibeTube</span></div>
+  <div class="searchbar"><input id="search" aria-label="Search videos" placeholder="Search videos, creators, vibes…"><button class="primary" onclick="searchYouTube()">Search</button></div>
+  <div class="header-actions"><button onclick="showAuth()" id="authButton">Sign in</button></div>
 </header>
-
 <div class="layout">
 <aside>
-  <button onclick="page('home')">🏠 Home</button>
-  <button onclick="page('youtube')">▶ Explore YouTube</button>
-  <button onclick="page('subscriptions')">🔔 Subscriptions</button>
-  <button onclick="page('history')">🕘 Watch history</button>
-  <button onclick="page('downloads')">⬇ Saved videos</button>
-  <button onclick="page('upload')">＋ Upload</button>
-  <button onclick="page('profile')">👤 Your profile</button>
+  <button class="active" data-page="home" onclick="page('home')"><span class="nav-icon">🏠</span><span class="nav-text">Home</span></button>
+  <button data-page="fyp" onclick="page('fyp')"><span class="nav-icon">✨</span><span class="nav-text">For You</span></button>
+  <button data-page="shorts" onclick="page('shorts')"><span class="nav-icon">📱</span><span class="nav-text">Shorts</span></button>
+  <button data-page="youtube" onclick="page('youtube')"><span class="nav-icon">🔎</span><span class="nav-text">Explore</span></button>
+  <div class="nav-label">Your space</div>
+  <button data-page="subscriptions" onclick="page('subscriptions')"><span class="nav-icon">🔔</span><span class="nav-text">Subscriptions</span></button>
+  <button data-page="history" onclick="page('history')"><span class="nav-icon">🕘</span><span class="nav-text">History</span></button>
+  <button data-page="downloads" onclick="page('downloads')"><span class="nav-icon">🔖</span><span class="nav-text">Saved videos</span></button>
+  <button data-page="upload" onclick="page('upload')"><span class="nav-icon">➕</span><span class="nav-text">Upload</span></button>
+  <button data-page="profile" onclick="page('profile')"><span class="nav-icon">👤</span><span class="nav-text">Profile</span></button>
 </aside>
-
 <main>
 <section id="home">
-  <h2>Welcome to VibeTube</h2>
-  <p class="muted">Watch, discover and share your vibe.</p>
-  <button onclick="searchYouTube('popular videos')">Explore YouTube</button>
-  <h3>Community uploads</h3>
+  <div class="hero">
+    <h1>Your next favorite video is <span class="gradient-text">waiting.</span></h1>
+    <p>Discover videos, explore new interests, and find your vibe. Your watch activity on this device helps shape your For You feed.</p>
+    <div class="hero-actions"><button class="primary" onclick="page('fyp')">✨ Explore For You</button><button onclick="page('shorts')">▶ Watch Shorts</button></div>
+  </div>
+  <div class="section-head"><h3>Trending discovery</h3><button onclick="searchYouTube('trending popular videos','homeDiscover')">Refresh</button></div>
+  <div id="homeDiscover" class="grid"><div class="empty">Loading videos…</div></div>
+  <div class="section-head"><h3>Community uploads</h3><button onclick="page('upload')">＋ Upload</button></div>
   <div id="communityVideos" class="grid"></div>
 </section>
-
+<section id="fyp" class="hidden">
+  <h2>✨ For You</h2><p class="muted">Recommendations adapt using watch and like activity saved on this device.</p>
+  <div class="actions"><button onclick="personalizedSearch()">Refresh recommendations</button><button onclick="clearInterests()">Reset my interests</button></div>
+  <div id="fypVideos" class="grid"></div>
+</section>
+<section id="shorts" class="hidden">
+  <h2>📱 VibeTube Shorts</h2><p class="muted">A vertical feed of short videos found through YouTube search.</p>
+  <div class="actions"><button class="primary" onclick="loadShorts()">Find Shorts</button><button onclick="loadShorts('funny shorts')">Funny</button><button onclick="loadShorts('music shorts')">Music</button><button onclick="loadShorts('gaming shorts')">Gaming</button></div>
+  <div id="shortsVideos" class="shorts-wrap"><div class="empty">Choose Find Shorts to load videos.</div></div>
+</section>
 <section id="youtube" class="hidden">
-  <h2>Explore YouTube</h2>
-  <p class="muted">Videos listed here are checked for embedding support.</p>
+  <h2>Explore videos</h2><p class="muted">Only videos marked as embeddable are shown, but YouTube may still restrict playback.</p>
   <div id="youtubeVideos" class="grid"></div>
 </section>
-
-<section id="watch" class="hidden">
+<section id="watch" class="hidden watch-layout">
   <button onclick="page('youtube')">← Back to videos</button>
   <div id="playerBox"></div>
-  <h2 id="videoTitle"></h2>
-  <p id="videoCreator" class="muted"></p>
-  <div class="actions">
-    <button onclick="subscribeCreator()">Subscribe</button>
-    <button onclick="saveVideo()">Save video</button>
-  </div>
-  <div class="panel">
-    <h3>Comments</h3>
-    <textarea id="commentText" class="field" placeholder="Write a comment..."></textarea>
-    <button onclick="postComment()">Post comment</button>
-    <div id="comments"></div>
-  </div>
+  <h2 id="videoTitle"></h2><p id="videoCreator" class="muted"></p>
+  <div class="actions"><button onclick="likeVideo()">❤️ Like</button><button onclick="subscribeCreator()">🔔 Subscribe</button><button onclick="saveVideo()">🔖 Save</button><button onclick="page('fyp')">✨ More like this</button></div>
+  <div class="panel"><h3>Comments</h3><textarea id="commentText" class="field" placeholder="Write a comment…"></textarea><button class="primary" onclick="postComment()">Post comment</button><div id="comments"></div></div>
 </section>
-
-<section id="subscriptions" class="hidden">
-  <h2>Your subscriptions</h2><div id="subscriptionList"></div>
-</section>
-
-<section id="history" class="hidden">
-  <h2>Watch history</h2><div id="historyList"></div>
-</section>
-
-<section id="downloads" class="hidden">
-  <h2>Saved videos</h2>
-  <p class="muted">Saved links are listed here. YouTube videos are not downloaded as files.</p>
-  <div id="savedList"></div>
-</section>
-
+<section id="subscriptions" class="hidden"><h2>Your subscriptions</h2><div id="subscriptionList"></div></section>
+<section id="history" class="hidden"><h2>Watch history</h2><div id="historyList"></div></section>
+<section id="downloads" class="hidden"><h2>Saved videos</h2><p class="muted">Saved links are not video downloads.</p><div id="savedList"></div></section>
 <section id="upload" class="hidden">
-  <h2>Upload a video</h2>
-  <div class="panel">
-    <input id="uploadTitle" class="field" placeholder="Video title">
-    <textarea id="uploadDescription" class="field" placeholder="Description"></textarea>
-    <input id="uploadCategory" class="field" placeholder="Category">
-    <input id="uploadFile" class="field" type="file" accept="video/*">
-    <button onclick="uploadVideo()">Upload video</button>
-    <p id="uploadStatus" class="muted"></p>
-  </div>
+  <h2>Upload a video</h2><div class="panel"><input id="uploadTitle" class="field" placeholder="Video title"><textarea id="uploadDescription" class="field" placeholder="Description"></textarea><input id="uploadCategory" class="field" placeholder="Category"><input id="uploadFile" class="field" type="file" accept="video/*"><button class="primary" onclick="uploadVideo()">Upload video</button><p id="uploadStatus" class="muted status"></p></div>
 </section>
-
 <section id="profile" class="hidden">
-  <h2>Your profile</h2>
-  <div class="panel">
-    <p id="profileStatus">Sign in to view your profile.</p>
-    <input id="displayName" class="field" placeholder="Display name">
-    <button onclick="saveProfile()">Save profile</button>
-    <button onclick="signOut()">Sign out</button>
-  </div>
+  <h2>Your profile</h2><div class="panel"><p id="profileStatus">Sign in to view your profile.</p><input id="displayName" class="field" placeholder="Display name"><button class="primary" onclick="saveProfile()">Save profile</button><button onclick="signOut()">Sign out</button></div>
 </section>
-
 <section id="auth" class="hidden">
-  <h2>Sign in or create an account</h2>
-  <div class="panel">
-    <input id="email" type="email" class="field" placeholder="Email">
-    <input id="password" type="password" class="field" placeholder="Password">
-    <div class="actions">
-      <button onclick="signIn()">Sign in</button>
-      <button onclick="signUp()">Create account</button>
-    </div>
-    <p id="authStatus" class="muted"></p>
-  </div>
+  <div class="auth-wrap"><div class="auth-logo"><div class="brand" style="justify-content:center"><div class="brand-mark">▶</div><span>VibeTube</span></div><h2>Welcome back</h2><p class="muted">Sign in to join the community.</p></div>
+  <div class="panel"><input id="email" type="email" class="field" placeholder="Email address"><input id="password" type="password" class="field" placeholder="Password"><div class="actions"><button class="primary" onclick="signIn()">Sign in</button><button onclick="signUp()">Create account</button></div><p id="authStatus" class="muted status"></p></div></div>
 </section>
 </main>
 </div>
+ <script>
+/* =========================================
+   VIBETUBE CONFIGURATION
+   ========================================= */
 
-<script>
+// Your Supabase project URL and public publishable key.
 const SUPABASE_URL = "https://jzscxgrqsezwdylaakrq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_O6D5M5RcqC1hRsCK-V3fCA_XIstOeHU";
 
-// Replace with a NEW restricted YouTube Data API v3 key.
-const YOUTUBE_API_KEY = "AIzaSyDAF2PIa0ArQ0xPycNYmduX2HXz8Sm_KhQ";
+// IMPORTANT: Replace this with a NEW restricted YouTube Data API key.
+// Restrict it to YouTube Data API v3 in Google Cloud Console.
+const YOUTUBE_API_KEY = "PASTE_YOUR_NEW_RESTRICTED_API_KEY_HERE";
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
 let user = null;
 let activeVideo = null;
 let youtubeItems = [];
+let searchBusy = false;
+
+const $ = id => document.getElementById(id);
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   }[c]));
 }
 
-function page(id) {
-  document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+/* =========================================
+   INTRO ANIMATION
+   ========================================= */
 
-  if(id==="home") loadCommunity();
-  if(id==="subscriptions") loadSubscriptions();
-  if(id==="history") loadSaved("vt_watch_history","historyList","watched_at");
-  if(id==="downloads") loadSaved("vt_download_history","savedList","requested_at");
-  if(id==="profile") loadProfile();
+window.addEventListener("load", () => {
+  setTimeout(() => $("intro")?.classList.add("done"), 1900);
+});
+
+/* =========================================
+   PAGE NAVIGATION
+   ========================================= */
+
+function page(id) {
+  document.querySelectorAll("main > section").forEach(section => {
+    section.classList.add("hidden");
+  });
+
+  const target = $(id);
+  if (!target) return;
+
+  target.classList.remove("hidden");
+
+  document.querySelectorAll("aside button[data-page]").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === id);
+  });
+
+  if (id === "home") {
+    loadCommunity();
+    if (!$("homeDiscover").children.length) {
+      searchYouTube("popular videos", "homeDiscover");
+    }
+  }
+
+  if (id === "fyp") personalizedSearch();
+  if (id === "subscriptions") loadSubscriptions();
+  if (id === "history") loadSaved("vt_watch_history", "historyList", "watched_at");
+  if (id === "downloads") loadSaved("vt_download_history", "savedList", "requested_at");
+  if (id === "profile") loadProfile();
 }
 
-function showAuth() { page(user ? "profile" : "auth"); }
+function showAuth() {
+  page(user ? "profile" : "auth");
+}
+
+/* =========================================
+   SIGN UP / SIGN IN
+   ========================================= */
 
 async function signUp() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const {data,error} = await db.auth.signUp({email,password});
-  document.getElementById("authStatus").textContent = error
-    ? error.message : "Account created. Check your email if verification is required.";
-  if(data.user) { user=data.user; updateAuth(); }
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  const status = $("authStatus");
+
+  if (!email || !password) {
+    status.textContent = "Enter your email and password.";
+    return;
+  }
+
+  if (password.length < 8) {
+    status.textContent = "Use a password with at least 8 characters.";
+    return;
+  }
+
+  status.textContent = "Creating account…";
+
+  const { data, error } = await db.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    status.textContent = error.message;
+    return;
+  }
+
+  if (data.session) {
+    user = data.user;
+    updateAuth();
+    status.textContent = "Account created!";
+    page("home");
+  } else {
+    status.textContent =
+      "Account created. If email confirmation is enabled in Supabase, confirm your email before signing in.";
+  }
 }
 
 async function signIn() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const {data,error} = await db.auth.signInWithPassword({email,password});
-  document.getElementById("authStatus").textContent = error ? error.message : "Signed in!";
-  if(data.user) { user=data.user; updateAuth(); page("home"); }
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  const status = $("authStatus");
+
+  if (!email || !password) {
+    status.textContent = "Enter your email and password.";
+    return;
+  }
+
+  status.textContent = "Signing in…";
+
+  const { data, error } = await db.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    status.textContent = error.message;
+    return;
+  }
+
+  user = data.user;
+  updateAuth();
+  status.textContent = "Signed in!";
+  page("home");
 }
 
 async function signOut() {
-  await db.auth.signOut();
-  user=null;
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  user = null;
   updateAuth();
   page("home");
 }
 
 function updateAuth() {
-  document.getElementById("authButton").textContent = user ? "Account" : "Sign in";
+  $("authButton").textContent = user ? "My account" : "Sign in";
 }
 
-document.getElementById("search").addEventListener("keydown", e => {
-  if(e.key==="Enter") searchYouTube();
+db.auth.onAuthStateChange((_event, session) => {
+  user = session?.user || null;
+  updateAuth();
 });
 
-async function searchYouTube(query) {
-  query = query || document.getElementById("search").value.trim() || "popular videos";
-  page("youtube");
-  const box = document.getElementById("youtubeVideos");
+/* =========================================
+   SEARCH
+   ========================================= */
 
-  if(!YOUTUBE_API_KEY ||
-     YOUTUBE_API_KEY==="PASTE_YOUR_NEW_RESTRICTED_API_KEY_HERE") {
-    box.textContent = "Add your restricted YouTube API key in the script.";
+$("search").addEventListener("keydown", event => {
+  if (event.key === "Enter") searchYouTube();
+});
+
+async function searchYouTube(query, targetId = "youtubeVideos") {
+  query = query || $("search").value.trim() || "popular videos";
+
+  if (
+    !YOUTUBE_API_KEY ||
+    YOUTUBE_API_KEY === "PASTE_YOUR_NEW_RESTRICTED_API_KEY_HERE"
+  ) {
+    page(targetId === "homeDiscover" ? "home" : "youtube");
+    $(targetId).innerHTML =
+      '<div class="empty">Add your new restricted YouTube API key in the script to enable video search.</div>';
     return;
   }
 
-  box.textContent = "Finding videos that support embedded playback...";
+  if (targetId === "youtubeVideos") page("youtube");
+
+  const box = $(targetId);
+  if (!box || searchBusy) return;
+
+  searchBusy = true;
+  box.innerHTML = '<div class="empty">Finding videos…</div>';
 
   try {
     const params = new URLSearchParams({
-      part:"snippet",type:"video",maxResults:"25",q:query,key:YOUTUBE_API_KEY
+      part: "snippet",
+      type: "video",
+      maxResults: "25",
+      q: query,
+      key: YOUTUBE_API_KEY,
+      safeSearch: "moderate"
     });
 
     const response = await fetch(
-      "https://www.googleapis.com/youtube/v3/search?"+params
+      "https://www.googleapis.com/youtube/v3/search?" + params
     );
+
     const result = await response.json();
-    if(!response.ok) throw Error(result.error?.message || "YouTube search failed");
+
+    if (!response.ok) {
+      throw new Error(result.error?.message || "YouTube search failed.");
+    }
 
     const found = result.items || [];
-    if(!found.length) {
-      box.textContent = "No videos found. Try another search.";
+    if (!found.length) {
+      box.innerHTML = '<div class="empty">No videos found. Try another search.</div>';
       return;
     }
 
-    const ids = found.map(v => v.id.videoId).filter(Boolean).join(",");
+    const ids = found.map(item => item.id?.videoId).filter(Boolean).join(",");
+
     const checkParams = new URLSearchParams({
-      part:"status",id:ids,key:YOUTUBE_API_KEY
+      part: "status",
+      id: ids,
+      key: YOUTUBE_API_KEY
     });
 
     const checkResponse = await fetch(
-      "https://www.googleapis.com/youtube/v3/videos?"+checkParams
+      "https://www.googleapis.com/youtube/v3/videos?" + checkParams
     );
+
     const checkResult = await checkResponse.json();
 
-    if(!checkResponse.ok) {
-      throw Error(checkResult.error?.message || "Could not check video availability");
+    if (!checkResponse.ok) {
+      throw new Error(
+        checkResult.error?.message || "Could not check video availability."
+      );
     }
 
     const allowed = new Set(
       (checkResult.items || [])
-        .filter(v => v.status?.embeddable)
-        .map(v => v.id)
+        .filter(item => item.status?.embeddable)
+        .map(item => item.id)
     );
 
-    youtubeItems = found.filter(v => allowed.has(v.id.videoId)).map(v => ({
-      id:v.id.videoId,
-      title:v.snippet.title,
-      creator:v.snippet.channelTitle,
-      channelId:v.snippet.channelId,
-      thumbnail:v.snippet.thumbnails?.high?.url ||
-                v.snippet.thumbnails?.default?.url || ""
-    }));
+    const videos = found
+      .filter(item => allowed.has(item.id.videoId))
+      .map(item => ({
+        id: item.id.videoId,
+        title: item.snippet.title,
+        creator: item.snippet.channelTitle,
+        channelId: item.snippet.channelId,
+        thumbnail:
+          item.snippet.thumbnails?.high?.url ||
+          item.snippet.thumbnails?.medium?.url ||
+          item.snippet.thumbnails?.default?.url ||
+          "",
+        publishedAt: item.snippet.publishedAt || "",
+        description: item.snippet.description || ""
+      }));
 
-    box.innerHTML = "";
+    youtubeItems = videos;
 
-    if(!youtubeItems.length) {
-      box.textContent = "No embeddable videos found. Try a different search.";
+    if (!videos.length) {
+      box.innerHTML =
+        '<div class="empty">No embeddable videos found. Try another search.</div>';
       return;
     }
 
-    youtubeItems.forEach(v => {
-      const el = document.createElement("div");
-      el.className = "card";
-
-      const img = document.createElement("img");
-      img.src = v.thumbnail;
-      img.alt = v.title;
-
-      const title = document.createElement("h3");
-      title.textContent = v.title;
-
-      const creator = document.createElement("p");
-      creator.className = "muted";
-      creator.textContent = v.creator;
-
-      el.append(img,title,creator);
-      el.onclick = () => openYouTube(v);
-      box.appendChild(el);
-    });
-  } catch(error) {
-    box.textContent = "YouTube error: " + error.message;
+    renderVideos(box, videos);
+  } catch (error) {
+    box.innerHTML =
+      '<div class="empty">Search error: ' + esc(error.message) + "</div>";
+  } finally {
+    searchBusy = false;
   }
 }
 
-async function openYouTube(v) {
+/* =========================================
+   VIDEO CARDS
+   ========================================= */
+
+function renderVideos(box, videos) {
+  box.innerHTML = "";
+
+  videos.forEach(video => {
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const wrap = document.createElement("div");
+    wrap.className = "thumb-wrap";
+
+    const img = document.createElement("img");
+    img.src = video.thumbnail;
+    img.alt = video.title;
+    img.loading = "lazy";
+
+    const title = document.createElement("h3");
+    title.textContent = video.title;
+
+    const creator = document.createElement("p");
+    creator.className = "muted";
+    creator.textContent = video.creator;
+
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = "▶ Watch video";
+
+    wrap.appendChild(img);
+    card.append(wrap, title, creator, tag);
+
+    card.addEventListener("click", () => {
+      recordInterest(video);
+      openYouTube(video);
+    });
+
+    box.appendChild(card);
+  });
+}
+
+/* =========================================
+   WATCH INTERESTS / PERSONALIZED FYP
+   ========================================= */
+
+function getInterests() {
+  try {
+    return JSON.parse(localStorage.getItem("vt_interests") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function recordInterest(video) {
+  const interests = getInterests();
+
+  const words = (
+    video.title + " " + video.creator + " " + (video.description || "")
+  )
+    .toLowerCase()
+    .match(/[a-z0-9]{3,}/g) || [];
+
+  words.forEach(word => {
+    interests[word] = Math.min((interests[word] || 0) + 1, 100);
+  });
+
+  try {
+    localStorage.setItem("vt_interests", JSON.stringify(interests));
+    localStorage.setItem("vt_last_watched", JSON.stringify({
+      title: video.title,
+      creator: video.creator,
+      time: Date.now()
+    }));
+  } catch {
+    // Recommendations still work for the current session if storage is unavailable.
+  }
+}
+
+function personalizedSearch() {
+  const interests = getInterests();
+
+  const top = Object.entries(interests)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(entry => entry[0]);
+
+  const query = top.length
+    ? top.join(" ") + " videos"
+    : "popular trending videos";
+
+  searchYouTube(query, "fypVideos");
+}
+
+function clearInterests() {
+  localStorage.removeItem("vt_interests");
+  personalizedSearch();
+}
+
+/* =========================================
+   SHORTS FEED
+   ========================================= */
+
+async function loadShorts(query = "popular shorts") {
+  if (
+    !YOUTUBE_API_KEY ||
+    YOUTUBE_API_KEY === "PASTE_YOUR_NEW_RESTRICTED_API_KEY_HERE"
+  ) {
+    $("shortsVideos").innerHTML =
+      '<div class="empty">Add your YouTube API key to load Shorts.</div>';
+    return;
+  }
+
+  const box = $("shortsVideos");
+  box.innerHTML = '<div class="empty">Finding Shorts…</div>';
+
+  try {
+    const params = new URLSearchParams({
+      part: "snippet",
+      type: "video",
+      videoDuration: "short",
+      maxResults: "20",
+      q: query,
+      key: YOUTUBE_API_KEY,
+      safeSearch: "moderate"
+    });
+
+    const response = await fetch(
+      "https://www.googleapis.com/youtube/v3/search?" + params
+    );
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error?.message || "Could not load Shorts.");
+    }
+
+    const found = result.items || [];
+    if (!found.length) {
+      box.innerHTML = '<div class="empty">No short videos found.</div>';
+      return;
+    }
+
+    const ids = found.map(item => item.id?.videoId).filter(Boolean).join(",");
+    const checkParams = new URLSearchParams({
+      part: "status,contentDetails",
+      id: ids,
+      key: YOUTUBE_API_KEY
+    });
+
+    const checkResponse = await fetch(
+      "https://www.googleapis.com/youtube/v3/videos?" + checkParams
+    );
+    const checkResult = await checkResponse.json();
+
+    if (!checkResponse.ok) {
+      throw new Error(checkResult.error?.message || "Could not check Shorts.");
+    }
+
+    const allowed = new Set(
+      (checkResult.items || [])
+        .filter(item => item.status?.embeddable)
+        .map(item => item.id)
+    );
+
+    const videos = found
+      .filter(item => allowed.has(item.id.videoId))
+      .map(item => ({
+        id: item.id.videoId,
+        title: item.snippet.title,
+        creator: item.snippet.channelTitle,
+        channelId: item.snippet.channelId,
+        thumbnail: item.snippet.thumbnails?.high?.url || "",
+        description: item.snippet.description || ""
+      }));
+
+    box.innerHTML = "";
+
+    if (!videos.length) {
+      box.innerHTML = '<div class="empty">No embeddable short videos found.</div>';
+      return;
+    }
+
+    videos.forEach(video => {
+      const card = document.createElement("article");
+      card.className = "short-card";
+
+      const iframe = document.createElement("iframe");
+      iframe.src =
+        "https://www.youtube-nocookie.com/embed/" +
+        encodeURIComponent(video.id);
+      iframe.title = video.title;
+      iframe.loading = "lazy";
+      iframe.allow =
+        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+
+      const info = document.createElement("div");
+      info.className = "short-info";
+
+      const title = document.createElement("h3");
+      title.textContent = video.title;
+
+      const creator = document.createElement("p");
+      creator.textContent = video.creator;
+
+      info.append(title, creator);
+      card.append(iframe, info);
+      box.appendChild(card);
+    });
+  } catch (error) {
+    box.innerHTML =
+      '<div class="empty">Shorts error: ' + esc(error.message) + "</div>";
+  }
+}
+
+/* =========================================
+   OPEN A VIDEO
+   ========================================= */
+
+async function openYouTube(video) {
   activeVideo = {
-    id:"yt:"+v.id,
-    youtubeId:v.id,
-    title:v.title,
-    creator:v.creator,
-    channelId:v.channelId,
-    video_url:"https://www.youtube.com/watch?v="+v.id,
-    source:"youtube"
+    id: "yt:" + video.id,
+    youtubeId: video.id,
+    title: video.title,
+    creator: video.creator,
+    channelId: video.channelId,
+    video_url: "https://www.youtube.com/watch?v=" + video.id,
+    source: "youtube"
   };
 
-  document.getElementById("videoTitle").textContent = v.title;
-  document.getElementById("videoCreator").textContent = "By "+v.creator;
+  $("videoTitle").textContent = video.title;
+  $("videoCreator").textContent = "By " + video.creator;
 
-  // Play the video directly inside VibeTube.
-  const box = document.getElementById("playerBox");
+  const box = $("playerBox");
   box.innerHTML = "";
 
   const iframe = document.createElement("iframe");
   iframe.id = "player";
-  iframe.src = "https://www.youtube.com/embed/"+encodeURIComponent(v.id);
-  iframe.title = "VibeTube video player";
-  iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  iframe.src =
+    "https://www.youtube-nocookie.com/embed/" +
+    encodeURIComponent(video.id);
+  iframe.title = video.title;
+  iframe.allow =
+    "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
   iframe.referrerPolicy = "strict-origin-when-cross-origin";
   iframe.allowFullscreen = true;
+
   box.appendChild(iframe);
 
   page("watch");
@@ -330,166 +705,341 @@ async function openYouTube(v) {
   await recordHistory();
 }
 
-async function loadCommunity() {
-  const box = document.getElementById("communityVideos");
-  const {data,error} = await db.from("videos").select("*")
-    .order("created_at",{ascending:false}).limit(30);
+/* =========================================
+   COMMUNITY VIDEOS
+   ========================================= */
 
-  if(error) {
-    box.textContent = "Community uploads appear here when your Supabase videos table is configured.";
+async function loadCommunity() {
+  const box = $("communityVideos");
+
+  const { data, error } = await db
+    .from("videos")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) {
+    box.innerHTML =
+      '<div class="empty">Community videos will appear here after the Supabase videos table and policies are configured.</div>';
     return;
   }
 
   box.innerHTML = "";
-  (data||[]).forEach(v => {
-    const card = document.createElement("div");
+
+  (data || []).forEach(video => {
+    const card = document.createElement("article");
     card.className = "card";
 
-    const video = document.createElement("video");
-    video.src = v.video_url;
-    video.controls = true;
-    video.playsInline = true;
+    const media = document.createElement("video");
+    media.src = video.video_url;
+    media.controls = true;
+    media.playsInline = true;
+    media.preload = "metadata";
 
     const title = document.createElement("h3");
-    title.textContent = v.title || "Untitled video";
+    title.textContent = video.title || "Untitled video";
 
-    const desc = document.createElement("p");
-    desc.className = "muted";
-    desc.textContent = v.description || "";
+    const description = document.createElement("p");
+    description.className = "muted";
+    description.textContent = video.description || "";
 
-    card.append(video,title,desc);
+    card.append(media, title, description);
     box.appendChild(card);
   });
+
+  if (!data?.length) {
+    box.innerHTML = '<div class="empty">No community uploads yet. Be the first!</div>';
+  }
 }
+
+/* =========================================
+   VIDEO UPLOADS
+   ========================================= */
 
 async function uploadVideo() {
-  if(!user) return alert("Sign in first.");
+  if (!user) {
+    alert("Sign in first.");
+    return;
+  }
 
-  const file = document.getElementById("uploadFile").files[0];
-  const title = document.getElementById("uploadTitle").value.trim();
-  const description = document.getElementById("uploadDescription").value.trim();
-  const category = document.getElementById("uploadCategory").value.trim() || "Other";
-  const status = document.getElementById("uploadStatus");
+  const file = $("uploadFile").files[0];
+  const title = $("uploadTitle").value.trim();
+  const description = $("uploadDescription").value.trim();
+  const category = $("uploadCategory").value.trim() || "Other";
+  const status = $("uploadStatus");
 
-  if(!file || !title) return alert("Choose a video and enter a title.");
-  if(!file.type.startsWith("video/")) return alert("Choose a video file.");
+  if (!file || !title) {
+    alert("Choose a video and enter a title.");
+    return;
+  }
 
-  status.textContent = "Uploading...";
-  const path = user.id+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  if (!file.type.startsWith("video/")) {
+    alert("Please choose a video file.");
+    return;
+  }
 
-  const {error:uploadError} = await db.storage.from("videos").upload(path,file);
-  if(uploadError) { status.textContent=uploadError.message; return; }
+  status.textContent = "Uploading…";
 
-  const {data:urlData} = db.storage.from("videos").getPublicUrl(path);
-  const {error} = await db.from("videos").insert({
-    user_id:user.id,title,description,category,
-    video_url:urlData.publicUrl,storage_path:path
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = user.id + "/" + Date.now() + "-" + safeName;
+
+  const { error: uploadError } = await db.storage
+    .from("videos")
+    .upload(path, file);
+
+  if (uploadError) {
+    status.textContent = uploadError.message;
+    return;
+  }
+
+  const { data: urlData } = db.storage.from("videos").getPublicUrl(path);
+
+  const { error } = await db.from("videos").insert({
+    user_id: user.id,
+    title,
+    description,
+    category,
+    video_url: urlData.publicUrl,
+    storage_path: path
   });
 
-  status.textContent = error ? "Upload record failed: "+error.message : "Video uploaded!";
-  if(!error) loadCommunity();
+  status.textContent = error
+    ? "Upload record failed: " + error.message
+    : "Video uploaded successfully!";
+
+  if (!error) loadCommunity();
 }
 
+/* =========================================
+   COMMENTS
+   ========================================= */
+
 async function postComment() {
-  if(!user) return alert("Sign in to comment.");
-  if(!activeVideo) return;
+  if (!user) {
+    alert("Sign in to comment.");
+    return;
+  }
 
-  const content = document.getElementById("commentText").value.trim();
-  if(!content) return;
+  if (!activeVideo) return;
 
-  const {error} = await db.from("vt_comments").insert({
-    video_id:activeVideo.id,user_id:user.id,content
+  const content = $("commentText").value.trim();
+  if (!content) return;
+
+  const { error } = await db.from("vt_comments").insert({
+    video_id: activeVideo.id,
+    user_id: user.id,
+    content
   });
 
-  if(error) return alert("Comment error: "+error.message);
-  document.getElementById("commentText").value = "";
-  loadComments();
+  if (error) {
+    alert("Comment error: " + error.message);
+    return;
+  }
+
+  $("commentText").value = "";
+  await loadComments();
 }
 
 async function loadComments() {
-  const box = document.getElementById("comments");
-  box.textContent = "Loading comments...";
+  const box = $("comments");
 
-  const {data,error} = await db.from("vt_comments").select("content,user_id,created_at")
-    .eq("video_id",activeVideo.id).order("created_at",{ascending:false});
+  if (!activeVideo) {
+    box.textContent = "Open a video to view comments.";
+    return;
+  }
 
-  if(error) {
-    box.textContent = "Comments require the vt_comments table and its Supabase policies.";
+  box.textContent = "Loading comments…";
+
+  const { data, error } = await db
+    .from("vt_comments")
+    .select("content,user_id,created_at")
+    .eq("video_id", activeVideo.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    box.textContent =
+      "Comments require the vt_comments table and its Supabase security policies.";
     return;
   }
 
   box.innerHTML = "";
-  (data||[]).forEach(c => {
+
+  (data || []).forEach(comment => {
     const el = document.createElement("div");
     el.className = "comment";
 
     const text = document.createElement("p");
-    text.textContent = c.content;
+    text.textContent = comment.content;
 
     const author = document.createElement("small");
     author.className = "muted";
-    author.textContent = "User: "+c.user_id;
+    author.textContent = "VibeTube member";
 
-    el.append(text,author);
+    el.append(text, author);
     box.appendChild(el);
   });
 
-  if(!data?.length) box.textContent = "No comments yet.";
+  if (!data?.length) {
+    box.textContent = "No comments yet. Start the conversation!";
+  }
 }
 
+/* =========================================
+   LIKES
+   ========================================= */
+
+function likeVideo() {
+  if (!activeVideo) return;
+
+  const key = "vt_liked_videos";
+  let liked = [];
+
+  try {
+    liked = JSON.parse(localStorage.getItem(key) || "[]");
+  } catch {}
+
+  if (!liked.includes(activeVideo.id)) {
+    liked.push(activeVideo.id);
+    localStorage.setItem(key, JSON.stringify(liked));
+    recordInterest({
+      title: activeVideo.title,
+      creator: activeVideo.creator,
+      description: ""
+    });
+    alert("Added to your local likes!");
+  } else {
+    alert("You've already liked this video on this device.");
+  }
+}
+
+/* =========================================
+   SUBSCRIPTIONS
+   ========================================= */
+
 async function subscribeCreator() {
-  if(!user) return alert("Sign in first.");
-  if(!activeVideo) return;
-
-  if(activeVideo.source==="youtube") {
-    return alert("YouTube creator subscriptions must be made on YouTube. VibeTube subscriptions are for VibeTube creators.");
-  }
-  if(!activeVideo.user_id || activeVideo.user_id===user.id) {
-    return alert("You cannot subscribe to yourself.");
+  if (!user) {
+    alert("Sign in first.");
+    return;
   }
 
-  const {error} = await db.from("vt_subscriptions").upsert({
-    subscriber_id:user.id,creator_id:activeVideo.user_id
+  if (!activeVideo) return;
+
+  if (activeVideo.source === "youtube") {
+    alert("To subscribe to a YouTube channel, use YouTube's own Subscribe button on that channel.");
+    return;
+  }
+
+  if (!activeVideo.user_id || activeVideo.user_id === user.id) {
+    alert("You cannot subscribe to your own account.");
+    return;
+  }
+
+  const { error } = await db.from("vt_subscriptions").upsert({
+    subscriber_id: user.id,
+    creator_id: activeVideo.user_id
   });
+
   alert(error ? error.message : "Subscribed!");
 }
 
-async function saveVideo() {
-  if(!user) return alert("Sign in first.");
-  if(!activeVideo) return;
+async function loadSubscriptions() {
+  const box = $("subscriptionList");
 
-  const {error} = await db.from("vt_download_history").insert({
-    user_id:user.id,video_id:activeVideo.id,
-    title:activeVideo.title,video_url:activeVideo.video_url
+  if (!user) {
+    box.textContent = "Sign in to view your subscriptions.";
+    return;
+  }
+
+  const { data, error } = await db
+    .from("vt_subscriptions")
+    .select("creator_id")
+    .eq("subscriber_id", user.id);
+
+  if (error) {
+    box.textContent = "Set up the vt_subscriptions table and policies first.";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  (data || []).forEach(subscription => {
+    const panel = document.createElement("div");
+    panel.className = "panel";
+    panel.textContent = "Subscribed creator: " + subscription.creator_id;
+    box.appendChild(panel);
   });
 
-  alert(error ? error.message : "Saved to your list. This saves a link, not a video file.");
+  if (!data?.length) {
+    box.innerHTML = '<div class="empty">No subscriptions yet.</div>';
+  }
+}
+
+/* =========================================
+   SAVE VIDEOS AND WATCH HISTORY
+   ========================================= */
+
+async function saveVideo() {
+  if (!user) {
+    alert("Sign in to save videos.");
+    return;
+  }
+
+  if (!activeVideo) return;
+
+  const { error } = await db.from("vt_download_history").insert({
+    user_id: user.id,
+    video_id: activeVideo.id,
+    title: activeVideo.title,
+    video_url: activeVideo.video_url
+  });
+
+  alert(
+    error
+      ? "Save error: " + error.message
+      : "Saved to your list! This saves a link, not a video file."
+  );
 }
 
 async function recordHistory() {
-  if(!user || !activeVideo) return;
+  if (!user || !activeVideo) return;
 
-  const {error} = await db.from("vt_watch_history").insert({
-    user_id:user.id,video_id:activeVideo.id,
-    title:activeVideo.title,video_url:activeVideo.video_url
+  const { error } = await db.from("vt_watch_history").insert({
+    user_id: user.id,
+    video_id: activeVideo.id,
+    title: activeVideo.title,
+    video_url: activeVideo.video_url
   });
 
-  if(error) console.warn("History not saved:",error.message);
+  if (error) {
+    console.warn("History not saved:", error.message);
+  }
 }
 
-async function loadSaved(table,elementId,dateField) {
-  const box = document.getElementById(elementId);
-  if(!user) { box.textContent="Sign in to see your list."; return; }
+async function loadSaved(table, elementId, dateField) {
+  const box = $(elementId);
 
-  const {data,error} = await db.from(table).select("*").eq("user_id",user.id)
-    .order(dateField,{ascending:false}).limit(100);
+  if (!user) {
+    box.textContent = "Sign in to view your list.";
+    return;
+  }
 
-  if(error) { box.textContent="Set up the "+table+" table in Supabase first."; return; }
+  const { data, error } = await db
+    .from(table)
+    .select("*")
+    .eq("user_id", user.id)
+    .order(dateField, { ascending: false })
+    .limit(100);
+
+  if (error) {
+    box.textContent = "Set up the " + table + " table and policies first.";
+    return;
+  }
 
   box.innerHTML = "";
-  (data||[]).forEach(item => {
-    const el = document.createElement("div");
-    el.className = "panel";
+
+  (data || []).forEach(item => {
+    const panel = document.createElement("div");
+    panel.className = "panel";
 
     const title = document.createElement("strong");
     title.textContent = item.title || "Video";
@@ -500,82 +1050,81 @@ async function loadSaved(table,elementId,dateField) {
     link.rel = "noopener noreferrer";
     link.textContent = "Open video";
 
-    el.append(title,document.createElement("br"),link);
-    box.appendChild(el);
+    panel.append(title, document.createElement("br"), link);
+    box.appendChild(panel);
   });
 
-  if(!data?.length) box.textContent = "Nothing here yet.";
+  if (!data?.length) {
+    box.innerHTML = '<div class="empty">Nothing here yet.</div>';
+  }
 }
 
-async function loadSubscriptions() {
-  const box = document.getElementById("subscriptionList");
-  if(!user) { box.textContent="Sign in to see subscriptions."; return; }
-
-  const {data,error} = await db.from("vt_subscriptions").select("creator_id")
-    .eq("subscriber_id",user.id);
-
-  if(error) { box.textContent="Create the vt_subscriptions table in Supabase first."; return; }
-
-  box.innerHTML = "";
-  (data||[]).forEach(s => {
-    const el = document.createElement("div");
-    el.className = "panel";
-    el.textContent = "Creator account: "+s.creator_id;
-    box.appendChild(el);
-  });
-
-  if(!data?.length) box.textContent = "No subscriptions yet.";
-}
+/* =========================================
+   PROFILE
+   ========================================= */
 
 async function loadProfile() {
-  if(!user) {
-    document.getElementById("profileStatus").textContent="Please sign in.";
+  if (!user) {
+    $("profileStatus").textContent = "Please sign in to view your profile.";
+    $("displayName").value = "";
     return;
   }
 
-  document.getElementById("profileStatus").textContent=user.email;
-  const {data} = await db.from("profiles").select("display_name,username")
-    .eq("id",user.id).maybeSingle();
+  $("profileStatus").textContent = user.email || "Signed in";
 
-  document.getElementById("displayName").value =
+  const { data } = await db
+    .from("profiles")
+    .select("display_name,username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  $("displayName").value =
     data?.display_name || data?.username || "";
 }
 
 async function saveProfile() {
-  if(!user) return alert("Sign in first.");
+  if (!user) {
+    alert("Sign in first.");
+    return;
+  }
 
-  const display_name = document.getElementById("displayName").value.trim();
-  const {error} = await db.from("profiles").upsert({
-    id:user.id,display_name
+  const display_name = $("displayName").value.trim();
+
+  const { error } = await db.from("profiles").upsert({
+    id: user.id,
+    display_name
   });
 
   alert(error ? error.message : "Profile saved!");
 }
 
-db.auth.onAuthStateChange((_event,session) => {
-  user=session?.user||null;
-  updateAuth();
-});
+/* =========================================
+   STARTUP
+   ========================================= */
 
 async function init() {
-  const {data} = await db.auth.getUser();
-  user=data.user;
+  const { data, error } = await db.auth.getSession();
+
+  if (!error) {
+    user = data.session?.user || null;
+  }
+
   updateAuth();
   loadCommunity();
-  searchYouTube("popular videos");
+
+  if (
+    YOUTUBE_API_KEY &&
+    YOUTUBE_API_KEY !== "AIzaSyDAF2PIa0ArQ0xPycNYmduX2HXz8Sm_KhQ"
+  ) {
+    searchYouTube("popular trending videos", "homeDiscover");
+  } else {
+    $("homeDiscover").innerHTML =
+      '<div class="empty">Add your restricted YouTube API key to discover videos.</div>';
+  }
 }
 
 init();
 </script>
 </body>
 </html>
-```
-
-### Before you test it
-
-1. Replace `PASTE_YOUR_NEW_RESTRICTED_API_KEY_HERE` with a newly generated, restricted key.
-2. Make sure the Supabase `videos` table and `videos` storage bucket are configured.
-3. Create the `vt_comments`, `vt_subscriptions`, `vt_watch_history`, and `vt_download_history` tables with suitable Row Level Security policies.
-4. Save the file and refresh Live Server.
-
-**Note:** YouTube videos should play inside the page when embedding is allowed. If YouTube itself blocks playback for a video, HTML changes cannot override that restriction.
+<div class="footer">VibeTube · Watch responsibly · Built for discovery</div>
